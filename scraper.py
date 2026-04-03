@@ -1,6 +1,7 @@
 import json
 import os
 
+from create_db import add_comment
 from google_play_scraper import reviews, Sort
 import time
 
@@ -8,9 +9,9 @@ APP_ID = "com.openai.chatgpt"
 LANG = "en"
 COUNTRY = "us"
 SORT_MODE = Sort.NEWEST
-MAX_REVIEWS = 10000
+MAX_REVIEWS = 100
 SLEEP_SECONDS = 1.0
-OUTPUT_PATH = "/Users/zuotianhao/Desktop/sa intern/Phase 1/review.JSON"
+#OUTPUT_PATH = "/Users/zuotianhao/Desktop/sa intern/Phase 1/review.JSON"
 
 # Function to count the number of words in a given text
 def word_count(text: str) -> int:
@@ -29,13 +30,13 @@ def is_valid_utf8(s):
         return False
 
 
-def print_filtered_comments(
-    app_id: str,
-    lang: str = "en",
-    country: str = "us",
+def scrape_filtered_comments(
+    app_id: str = APP_ID,
+    lang: str = LANG,
+    country: str = COUNTRY,
     sort_mode=Sort.NEWEST,
-    max_reviews: int = 20,
-    sleep_seconds: float = 1.0
+    max_reviews: int = MAX_REVIEWS,
+    sleep_seconds: float = SLEEP_SECONDS
 ):
 
     total_printed = 0
@@ -56,10 +57,13 @@ def print_filtered_comments(
             break
 
         for r in result:
-            review_id = r.get("reviewId")
+            review_id = str(r.get("reviewId", ""))
             content = r.get("content", "")
-            score = r.get("score", "N/A")
-            date = str(r.get("at", "N/A"))
+            score = r.get("score")
+            date = str(r.get("at", ""))
+
+            if not review_id:
+                continue
 
 
             # if word_count(content) <= 7:
@@ -68,25 +72,33 @@ def print_filtered_comments(
             if not is_valid_utf8(content):
                 continue
             
-            data = {
-                "review_id": review_id,
-                "date": date,
-                "score": score,
-                "content": content
-            }
+            add_comment(review_id, content, score, date)
 
-            if not os.path.exists(OUTPUT_PATH) or os.path.getsize(OUTPUT_PATH) == 0:
-                all_reviews = []
+            
+#==========================================================================================
 
-            else:
-                with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
-                    all_reviews = json.load(f)
+            #put the data into json file
+            # data = {
+            #     "review_id": review_id,
+            #     "date": date,
+            #     "score": score,
+            #     "content": content
+            # }
 
-            all_reviews.append(data)
+            # if not os.path.exists(OUTPUT_PATH) or os.path.getsize(OUTPUT_PATH) == 0:
+            #     all_reviews = []
 
-            with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
-                json.dump(all_reviews, f, ensure_ascii=False, indent=4)
+            # else:
+            #     with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
+            #         all_reviews = json.load(f)
 
+            # all_reviews.append(data)
+
+            # with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+            #     json.dump(all_reviews, f, ensure_ascii=False, indent=4)
+#==========================================================================================
+
+            # print the review
             # print("=" * 80)
             # print(f"Review Number: {total_printed}")
             # print(f"User: {user_name}")
@@ -97,6 +109,8 @@ def print_filtered_comments(
             # print("=" * 80)
             # print()
 
+#==========================================================================================
+
             total_printed += 1
 
             if total_printed >= max_reviews:
@@ -105,11 +119,11 @@ def print_filtered_comments(
         if total_printed >= max_reviews:
             break
 
-        print(f"[INFO] Now printed: {total_printed}.")
+        print(f"[INFO] Now added: {total_printed}.")
 
         time.sleep(sleep_seconds)
 
-    print(f"[INFO] Total printed: {total_printed}.")
+    print(f"[INFO] Total added: {total_printed}.")
 
 if __name__ == "__main__":
     print_filtered_comments(
