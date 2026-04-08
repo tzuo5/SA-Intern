@@ -40,6 +40,23 @@ def print_table_data(cursor, table_name):
         print(f"{idx}. {row_map}")
 
 
+def is_table_empty(table_name: str) -> bool:
+    if not DB_PATH.exists():
+        raise FileNotFoundError(f"Database file not found: {DB_PATH.resolve()}")
+
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        cursor = conn.cursor()
+        tables = get_user_tables(cursor)
+        if table_name not in tables:
+            raise ValueError(f"Table not found: {table_name}")
+
+        cursor.execute(f"SELECT 1 FROM {table_name} LIMIT 1")
+        return cursor.fetchone() is None
+    finally:
+        conn.close()
+
+
 def main():
     if not DB_PATH.exists():
         print(f"[ERROR] Database file not found: {DB_PATH.resolve()}")

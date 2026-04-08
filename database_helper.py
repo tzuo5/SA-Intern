@@ -1,13 +1,15 @@
 import sqlite3
 
 DB_PATH = "comments.db"
-TABLE_NAME = "ChatGPT_comments"
 
 
-def _create_table(cursor):
+def _create_table(
+        cursor,
+        table_name
+    ):
     cursor.execute(
         f"""
-        CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+        CREATE TABLE IF NOT EXISTS {table_name} (
             review_id TEXT PRIMARY KEY,
             content TEXT NOT NULL,
             score INTEGER,
@@ -17,8 +19,8 @@ def _create_table(cursor):
     )
 
 
-def _needs_migration(cursor):
-    cursor.execute(f"PRAGMA table_info({TABLE_NAME})")
+def _needs_migration(cursor, table_name):
+    cursor.execute(f"PRAGMA table_info({table_name})")
     columns = cursor.fetchall()
 
     if not columns:
@@ -28,14 +30,14 @@ def _needs_migration(cursor):
     return schema.get("review_id") != "TEXT"
 
 
-def _migrate_table(cursor):
-    temp_table = f"{TABLE_NAME}_old"
+def _migrate_table(cursor, table_name):
+    temp_table = f"{table_name}_old"
 
-    cursor.execute(f"ALTER TABLE {TABLE_NAME} RENAME TO {temp_table}")
-    _create_table(cursor)
+    cursor.execute(f"ALTER TABLE {table_name} RENAME TO {temp_table}")
+    _create_table(cursor, table_name)
     cursor.execute(
         f"""
-        INSERT OR IGNORE INTO {TABLE_NAME} (review_id, content, score, date)
+        INSERT OR IGNORE INTO {table_name} (review_id, content, score, date)
         SELECT CAST(review_id AS TEXT), content, score, date
         FROM {temp_table}
         """
@@ -43,25 +45,25 @@ def _migrate_table(cursor):
     cursor.execute(f"DROP TABLE {temp_table}")
 
 
-def create_database():
+def create_database(table_name):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    _create_table(cursor)
-    if _needs_migration(cursor):
-        _migrate_table(cursor)
+    _create_table(cursor, table_name)
+    if _needs_migration(cursor, table_name):
+        _migrate_table(cursor, table_name)
 
     conn.commit()
     conn.close()
 
 
-def add_comment(review_id, content, score, date):
+def add_comment(review_id, content, score, date, table_name):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute(
         f"""
-        INSERT OR REPLACE INTO {TABLE_NAME} (review_id, content, score, date)
+        INSERT OR REPLACE INTO {table_name} (review_id, content, score, date)
         VALUES (?, ?, ?, ?)
         """,
         (str(review_id), content, score, str(date)),
