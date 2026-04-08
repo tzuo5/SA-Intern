@@ -7,9 +7,9 @@ def run_ingestion(
     lang: str,
     country: str,
     sort_mode: Sort,
-    tabel_name: str
+    table_name: str
 ):
-    create_database(tabel_name)
+    create_database(table_name)
 
     review = scrape_filtered_comments(
         app_id=app_id,
@@ -24,7 +24,7 @@ def run_ingestion(
     review_id, content, score, date = review
 
     if review_id and content and score is not None and date:
-        add_comment(review_id, content, score, date, tabel_name)
+        add_comment(review_id, content, score, date, table_name)
 
 
 

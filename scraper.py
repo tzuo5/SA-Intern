@@ -44,5 +44,5 @@ def scrape_filtered_comments(
     if not is_valid_utf8(content):
         print("[INFO] Skipping review with invalid UTF-8 content.")
         return None
-
+    
     return review_id, content, score, date
