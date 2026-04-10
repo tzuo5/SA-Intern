@@ -18,6 +18,17 @@ def _create_table(
         """
     )
 
+def get_user_tables(cursor):
+    cursor.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+        ORDER BY name
+        """
+    )
+    return [row[0] for row in cursor.fetchall()]
+
 
 def _needs_migration(cursor, table_name):
     cursor.execute(f"PRAGMA table_info({table_name})")
@@ -71,3 +82,19 @@ def add_comment(review_id, content, score, date, table_name):
 
     conn.commit()
     conn.close()
+
+def is_table_empty(table_name: str) -> bool:
+    if not DB_PATH.exists():
+        raise FileNotFoundError(f"Database file not found: {DB_PATH.resolve()}")
+
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        cursor = conn.cursor()
+        tables = get_user_tables(cursor)
+        if table_name not in tables:
+            raise ValueError(f"Table not found: {table_name}")
+
+        cursor.execute(f"SELECT 1 FROM {table_name} LIMIT 1")
+        return cursor.fetchone() is None
+    finally:
+        conn.close()

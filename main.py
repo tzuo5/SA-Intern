@@ -1,4 +1,4 @@
-from time import time
+import time
 from ingestion import run_ingestion
 from google_play_scraper import reviews, Sort
 
