@@ -18,13 +18,16 @@ def run_ingestion(
         sort_mode=sort_mode,
     )
 
-    if not review:
-        return
+    print(review)
+
+    # if not review:
+    #     return
 
     review_id, content, score, date = review
+    duplicates = 0
 
     if review_id and content and score is not None and date:
-        add_comment(review_id, content, score, date, table_name)
+        duplicates += add_comment(review_id, content, score, date, table_name)
 
-
+    return duplicates
 

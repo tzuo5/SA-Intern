@@ -1,5 +1,7 @@
 from google_play_scraper import reviews, Sort
 
+CONTINUATION_TOKENS = {}
+
 # Function to check if a string is valid UTF-8
 def is_valid_utf8(s):
     if not isinstance(s, str):
@@ -17,15 +19,19 @@ def scrape_filtered_comments(
     country: str,
     sort_mode: Sort,
 ):
-    
-    result, _ = reviews(
+    token_key = (app_id, lang, country, sort_mode)
+    continuation_token = CONTINUATION_TOKENS.get(token_key)
+
+    result, next_token = reviews(
         app_id,
         lang=lang,
         country=country,
         sort=sort_mode,
         count=1,
-        continuation_token=None,
+        continuation_token=continuation_token,
     )
+
+    CONTINUATION_TOKENS[token_key] = next_token
 
     if not result:
         print("[INFO] No more reviews found.")
