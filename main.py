@@ -1,7 +1,7 @@
 import time
 from ingestion import run_ingestion
-from monitoring import render_progress
-from google_play_scraper import reviews, Sort
+from monitoring import render_progress, print_database
+from google_play_scraper import Sort
 
 APP_ID = "com.openai.chatgpt"
 LANG = "en"
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     print("[INFO] Starting data ingestion...")
     print(f"[INFO] Total iterations: {ITERATE_TIMES}")
     for i in range(ITERATE_TIMES):
-        for j in range(1000):
+        for j in range(10):
             duplicates += run_ingestion(
                 app_id=APP_ID,
                 lang=LANG,
@@ -30,3 +30,4 @@ if __name__ == "__main__":
         print()
         print(f"[INFO] Duplicates found: {duplicates}")
         time.sleep(SLEEP_TIME)
+    print_database(APP_ID, TABLE_NAME)

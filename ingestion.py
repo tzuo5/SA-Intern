@@ -18,11 +18,6 @@ def run_ingestion(
         sort_mode=sort_mode,
     )
 
-    print(review)
-
-    # if not review:
-    #     return
-
     review_id, content, score, date = review
     duplicates = 0
 
